@@ -1,0 +1,171 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname bexp) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Edison Ying (21119725)
+;; CS 135 Fall 2024
+;; Assignment 07, Q2 Arithmetic Expressions
+;; ***************************************************
+;;
+
+;; (a)
+;; A Boolean is (anyof 0 1)
+
+;; A Boolean Expression (BExp) is one of:
+;; * Boolean
+;; * OpNode
+
+;; An OpNode is a (list (anyof 'AND 'OR 'XOR) (listof BExp))
+
+;; bexp-template bexp: BExp -> Any
+(define (bexp-template bexp)
+  (cond [(number? bexp) ...]
+        [(cons? bexp) (... (opnode-template (first be) (second be)))]))
+
+;; opnode-template: (anyof 'AND 'OR 'XOR) (listof BExp) -> Any
+(define (opnode-template op lobe)
+  (cond [(empty? lobe) ...]
+        [else (... (bexp-template (first lobe))
+                   (opnode-template (rest lobe)))]))
+
+;; ***************************************************
+;; (b)
+;; (eval bexp) evaluates a boolean expression
+;; Examples:
+(check-expect (eval (list 'AND (list 0 1 1))) 0)
+(check-expect (eval (list 'AND (list 1 1 1))) 1)
+(check-expect (eval (list 'OR (list 0 1 1))) 1)
+(check-expect (eval (list 'XOR (list 0 1 1))) 0)
+(check-expect (eval (list 'AND (list 1 (list 'XOR (list 0 1 (list 'OR
+                                                                  (list 0 0 0)))) 1))) 1)
+(check-expect (eval (list 'AND (list 1 1 (list 'XOR (list 0 (list 'AND (list 0 1)) 1))) 1)) 1)
+
+;; eval: BExp -> Boolean
+(define (eval bexp)
+  (cond [(number? bexp) bexp]
+        [(cons? bexp) (my-apply (first bexp) (second bexp))]))
+
+;; my-apply: (anyof 'AND 'OR 'XOR) 
+(define (my-apply op bexp)
+  (cond [(empty? bexp) bexp]
+        [(symbol=? 'AND op) (my-and (eval (first bexp)) (rest bexp))]
+        [(symbol=? 'OR op) (my-or (eval (first bexp)) (rest bexp))]
+        [(symbol=? 'XOR op) (my-xor (eval (first bexp)) (rest bexp) 0)]))
+
+;; (my-and val bexp) applies the AND operator
+;; my-and: Boolean BExp -> Boolean
+(define (my-and val bexp)
+  (cond [(= val 0) 0]
+        [(empty? bexp) 1]
+        [else (my-apply 'AND bexp)]))
+
+;; (my-or val bexp) applies the OR operator
+;; my-or: Boolean BExp -> Boolean
+(define (my-or val bexp)
+  (cond [(= val 1) 1]
+        [(empty? bexp) 0]
+        [else (my-apply 'OR bexp)]))
+
+;; (my-xor val bexp acc) applies the XOR operator
+;; my-xor: Boolean BExp Nat -> Boolean
+(define (my-xor val bexp acc)
+  (cond [(empty? bexp) (remainder (+ acc (eval val)) 2)]
+        [(number? val) (my-xor (first bexp) (rest bexp) (+ val acc))]
+        [else (my-apply 'XOR bexp)]))
+
+
+;; ***************************************************
+;; (c)
+;; (bidexp->string bexp) converts a binary id expression to a string
+;; Examples:
+(check-expect (bidexp->string (list 'AND (list 0 1 1))) "(f*t*t)")
+(check-expect (bidexp->string (list 'OR (list 0 1 1))) "(f+t+t)")
+(check-expect (bidexp->string (list 'XOR (list 0 1 1))) "(f.t.t)")
+(check-expect (bidexp->string (list 'AND (list 1 (list 'XOR (list 0 1
+                                                                  (list 'OR (list 0 0 0)))) 1))) "(t*(f.t.(f+f+f))*t)")
+(check-expect (bidexp->string (list 'AND (list 1 (list 'AND (list 0
+                                                                  1))))) "(t*(f*t))")
+(check-expect (bidexp->string (list 'XOR (list 0 't 'u 1 'w)))
+              "(f.'t.'u.t.'w)")
+(check-expect (bidexp->string (list 'OR (list 0 1 'e (list 'XOR
+                                                           (list 0 (list 'AND (list 0 1)) 1))))) "(f+t+'e+(f.(f*t).t))")
+(check-expect (bidexp->string (list 'OR (list 0 (list 'AND (list 0 1)) 'e  1))) "(f+(f*t)+'e+t)")
+
+;; bidexp->string: BIDExp -> Str
+(define (bidexp->string bexp)
+  (cond [(cons? bexp) (string-append "(" (op->string (first bexp) (second bexp)) ")")]
+        [(symbol? bexp) (string-append "'" (symbol->string bexp))]
+        [(= 0 bexp) "f"]
+        [(= 1 bexp) "t"]))
+
+;; (op->string op lst) Converts an operation to its string form
+;; op->string: (anyof 'AND 'OR 'XOR)
+(define (op->string op lst)
+  (cond [(empty? lst) ""]
+        [(empty? (rest lst)) (string-append (bidexp->string (first lst))
+                                            (op->string op (rest lst)))]
+        [(symbol=? 'AND op) (string-append (bidexp->string (first lst)) "*"
+                                           (op->string op (rest lst)))]
+        [(symbol=? 'OR op) (string-append (bidexp->string (first lst)) "+"
+                                           (op->string op (rest lst)))]
+        [(symbol=? 'XOR op) (string-append (bidexp->string (first lst)) "."
+                                           (op->string op (rest lst)))]))
+
+
+;; ***************************************************
+;; (d)
+
+(define identifier-table (list (list 'x 1) (list 'y 0)))
+
+;; (eval-id bexp) evaluates a boolean expression tree with an identifier table for symbols
+;; Examples:
+(check-expect (eval-id (list 'AND (list 0 'x 1)) identifier-table) 0)
+(check-expect (eval-id (list 'OR (list 'x 'y 1)) identifier-table) 1)
+(check-expect (eval-id (list 'XOR (list 0 'y 1)) identifier-table) 1)
+(check-expect (eval-id (list 'OR (list 0 'y (list 'AND (list 'x 1)))) identifier-table) 1)
+
+
+;; eval-id: BIDExp (listof (list Sym Boolean)) -> Boolean
+(define (eval-id bexp table)
+  (cond [(number? bexp) bexp]
+        [(symbol? bexp) (sym->val bexp table)]
+        [(cons? bexp) (my-apply-id (first bexp) (second bexp) table)]))
+
+(define (my-apply-id op bexp table)
+  (cond [(empty? bexp) bexp]
+        [(symbol=? 'AND op) (my-and-id (eval-id (first bexp) table) (rest bexp) table)]
+        [(symbol=? 'OR op) (my-or-id (eval-id (first bexp) table) (rest bexp) table)]
+        [(symbol=? 'XOR op) (my-xor-id (eval-id (first bexp) table) (rest bexp) 0 table)]))
+
+;; (sym->val sym table) Converts a symbol to the indentifier table value
+;; sym->val: Symbol (listof (list Symbol Boolean)) -> Boolean
+(define (sym->val sym table)
+  (cond [(symbol=? sym (first (first table))) (second (first table))]
+        [else (sym->val sym (rest table))]))
+
+;; (my-and val bexp) applies the AND operator
+;; my-and: Boolean BExp (listof (list Symbol Boolean)) -> Boolean
+(define (my-and-id val bexp table)
+  (cond [(= val 0) 0]
+        [(empty? bexp) 1]
+        [else (my-apply-id 'AND bexp table)]))
+
+;; (my-or val bexp) applies the OR operator
+;; my-or: Boolean BExp (listof (list Symbol Boolean)) -> Boolean
+(define (my-or-id val bexp table)
+  (cond [(= val 1) 1]
+        [(empty? bexp) 0]
+        [else (my-apply-id 'OR bexp table)]))
+
+;; (my-xor val bexp acc) applies the XOR operator
+;; my-xor: Boolean BExp Nat (listof (list Symbol Boolean)) -> Boolean
+(define (my-xor-id val bexp acc table)
+  (cond [(empty? bexp) (remainder (+ acc (eval val)) 2)]
+        [(number? val) (my-xor-id (first bexp) (rest bexp) (+ val acc) table)]
+        [else (my-apply-id 'XOR bexp table)]))
+
+
+
+
+
+

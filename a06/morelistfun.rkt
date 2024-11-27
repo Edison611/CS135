@@ -1,0 +1,71 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname morelistfun) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Edison Ying (21119725)
+;; CS 135 Fall 2024
+;; Assignment 06, Q1 More List Fun
+;; ***************************************************
+;;
+
+;; (a)
+;; (my-list-ref lon index) produces the value on the index of the list, false if index exceeds length of list
+;; Examples
+(check-expect (my-list-ref (list 1 2 3 4) 0) 1)
+(check-expect (my-list-ref (list 5 4 3) 2) 3)
+(check-expect (my-list-ref (list 2) 20) false)
+(check-expect (my-list-ref (list 3 6.2 9 12) 3) 12)
+
+;; my-list-ref: (listof Num) Nat -> Num
+(define (my-list-ref lon index)
+  (cond [(empty? lon) false]
+        [(= index 0) (first lon)]
+        [else (my-list-ref (rest lon) (- index 1))]))
+
+;; ***************************************************
+;; (b)
+;; (zip l1 l2) produces a new list with the key being the element of the first list and the value being the element of second list
+;; Examples:
+(check-expect (zip (list 1 2 3 4) (list "a" "b" "c" "d"))
+              (list (list 1 "a") (list 2 "b") (list 3 "c") (list 4 "d")))
+(check-expect (zip (list "a" "b" "c" ) (list 1 2 3))
+              (list (list "a" 1) (list "b" 2) (list "c" 3)))
+(check-expect (zip empty empty) empty)
+;; zip: (listof Any) (listof Any) -> (listof (list Any Any))
+;; requires: (length l1) = (length l2)
+(define (zip l1 l2)
+  (cond [(empty? l1) empty]
+        [else (cons (list (first l1) (first l2))
+                    (zip (rest l1) (rest l2)))]))
+
+;; ***************************************************
+;; (c)
+;; (list-xor lon1 lon2) produces a sorted list with items that are in either lon1 or lon2 but not in both
+;; Examples
+(check-expect (list-xor (list 1 3 5) (list 2 3 4)) (list 1 2 4 5))
+(check-expect (list-xor (list 1 3 5) (list 1 3 5)) (list))
+(check-expect (list-xor (list 1 3 5 7) (list 2 4 6)) (list 1 2 3 4 5 6 7))
+(check-expect (list-xor (list 1 3 5) (list 2 4 6 8)) (list 1 2 3 4 5 6 8))
+
+;; list-xor: (listof Num) (listof Num) -> (listof Num)
+;; requires:
+;; * lon1 and lon2 to be sorted in ascending order
+;; * lon1 and lon2 not containing any duplicate items themselves
+(define (list-xor lon1 lon2)
+  (cond [(and (empty? lon1) (empty? lon2)) empty]
+        [(and (empty? lon1) (cons? lon2)) lon2]
+        [(and (cons? lon1) (empty? lon2)) lon1]
+        [(and (cons? lon1) (cons? lon2))
+         (cond
+           [(= (first lon1) (first lon2))
+            (list-xor (rest lon1) (rest lon2))]
+           [(< (first lon1) (first lon2))
+            (cons (first lon1) (list-xor (rest lon1) lon2))]
+           [else (cons (first lon2) (list-xor lon1 (rest lon2)))])]))
+
+
+
+
+
+
+

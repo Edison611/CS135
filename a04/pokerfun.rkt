@@ -1,0 +1,309 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname pokerfun) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;;
+;; ***************************************************
+;; Edison Ying (21119725)
+;; CS 135 Fall 2024
+;; Assignment 04, Q3 PokerFun
+;; ***************************************************
+;;
+
+(define-struct card (rank suit))
+;; A Card is a (make-card (anyof Int Sym) Sym)
+;; Requires: rank is either an integer from 2 to 10
+;; or one of 'Jack, 'Queen, 'King, 'Ace
+;; suit is one of 'Club, 'Diamond, 'Heart, 'Spade
+
+(define-struct custom-card (rank suit))
+;; A Custom-Card is a (make-custom-card Int Int)
+;; Requires: rank is an integer from 2 to 14
+;; suit is an integer from 1 to 4
+
+;; (card->custom-card card) converts a Card to a Custom-Card
+;; Examples:
+(check-expect (card->custom-card (make-card 'Ace 'Diamond))
+              (make-custom-card 14 2))
+(check-expect (card->custom-card (make-card 2 'Spade))
+              (make-custom-card 2 4))
+
+;; card->custom-card: Card -> Custom-Card
+(define (card->custom-card card)
+  (make-custom-card
+   (cond
+     [(number? (card-rank card)) (card-rank card)]
+     [(symbol=? (card-rank card) 'Jack) 11]
+     [(symbol=? (card-rank card) 'Queen) 12]
+     [(symbol=? (card-rank card) 'King) 13]
+     [(symbol=? (card-rank card) 'Ace) 14]
+     )
+   (cond
+     [(symbol=? (card-suit card) 'Club) 1]
+     [(symbol=? (card-suit card) 'Diamond) 2]
+     [(symbol=? (card-suit card) 'Heart) 3]
+     [(symbol=? (card-suit card) 'Spade) 4])))
+
+;; ***************************************************
+;; (a)
+;; (sorted? cards) produces true if the cards appear in increasing order
+;; Examples
+(check-expect
+ (sorted? (cons (make-card 2 'Diamond)
+                (cons (make-card 7 'Club) empty)))
+ true)
+(check-expect
+ (sorted? (cons (make-card 'Ace 'Spade)
+                (cons (make-card 'Ace 'Club) empty)))
+ false)
+(check-expect
+ (sorted? (cons (make-card 2 'Heart)
+                (cons (make-card 'Jack 'Club)
+                      (cons (make-card 'Jack 'Spade)
+                            (cons (make-card 'King 'Diamond) empty)))))
+ true)
+(check-expect
+ (sorted? (cons (make-card 2 'Heart) empty))
+ true)
+;; sorted?: (listof Card) -> Bool
+(define (sorted? cards)
+  (cond
+    [(or (empty? cards) (empty? (rest cards))) true]
+    [(and (= (custom-card-rank (card->custom-card (first cards)))
+             (custom-card-rank (card->custom-card (first (rest cards)))))
+          (< (custom-card-suit (card->custom-card (first cards)))
+             (custom-card-suit (card->custom-card (first (rest cards))))))
+     (sorted? (rest cards))]
+    [(< (custom-card-rank (card->custom-card (first cards)))
+        (custom-card-rank (card->custom-card (first (rest cards)))))
+     (sorted? (rest cards))]
+    [else false]))
+
+;; ***************************************************
+;; (b)
+;; (cheater? cards) checks if there are any duplicate cards
+;; Examples:
+(check-expect
+ (cheater? (cons (make-card 2 'Diamond)
+                 (cons (make-card 2 'Heart)
+                       (cons (make-card 7 'Club) empty))))
+ false)
+(check-expect
+ (cheater? (cons (make-card 'Ace 'Spade)
+                 (cons (make-card 'Ace 'Spade) empty)))
+ true)
+(check-expect
+ (cheater? (cons (make-card 'Jack 'Diamond)
+                 (cons (make-card 'Jack 'Heart)
+                       (cons (make-card 7 'Club) empty))))
+ false)
+(check-expect
+ (cheater? (cons (make-card 2 'Spade)
+                 (cons (make-card 3 'Spade) empty)))
+ false)
+
+;; cheater?: (listof Card) -> Bool
+(define (cheater? cards)
+  (cond [(empty? cards) false]
+        [(exists? (first cards) (rest cards)) true]
+        [else (cheater? (rest cards))]))
+
+;; (exists? card list) produces true if the card is in the list, false otherwise
+;; Examples:
+(check-expect
+ (exists? (make-card 2 'Spade) (cons (make-card 2 'Spade)
+                 (cons (make-card 3 'Spade) empty)))
+ true)
+(check-expect
+ (exists? (make-card 2 'Spade) (cons (make-card 4 'Spade)
+                 (cons (make-card 3 'Spade) empty)))
+ false)
+;; exists?: Card (listof Card) -> Bool
+(define (exists? card list)
+  (cond
+    [(empty? list) false]
+    [(and (= (custom-card-rank (card->custom-card (first list)))
+             (custom-card-rank (card->custom-card card)))
+          (= (custom-card-suit (card->custom-card (first list)))
+             (custom-card-suit (card->custom-card card))))
+     true]
+    [else (exists? card (rest list))]))
+
+;; ***************************************************
+;; (c)
+;; (is-straight? hand) produces true if there's a straight, false otherwise
+;; Examples
+(check-expect
+ (is-straight? (cons (make-card 2 'Diamond)
+                     (cons (make-card 3 'Heart)
+                           (cons (make-card 4 'Club)
+                                 (cons (make-card 5 'Spade)
+                                       (cons (make-card 6 'Club) empty))))))
+ true)
+(check-expect
+ (is-straight? (cons (make-card 8 'Diamond)
+                     (cons (make-card 9 'Club)
+                           (cons (make-card 9 'Heart)
+                                 (cons (make-card 'Queen 'Spade)
+                                       (cons (make-card 'King 'Club) empty))))))
+ false)
+(check-expect
+ (is-straight? (cons (make-card 10 'Diamond)
+                     (cons (make-card 'Jack 'Club)
+                           (cons (make-card 'Queen 'Heart)
+                                 (cons (make-card 'King 'Spade)
+                                       (cons (make-card 'Ace 'Club) empty))))))
+ true)
+;; is-straight?: (listof Card) -> Bool
+;; Requires: The length of hand to be 5
+;;           hand must be sorted in already
+(define (is-straight? hand)
+  (cond
+    [(or (empty? hand) (empty? (rest hand))) true]
+    [(= (+ 1 (custom-card-rank (card->custom-card (first hand))))
+        (custom-card-rank (card->custom-card (first (rest hand)))))
+     (is-straight? (rest hand))]
+    [else false]))
+
+;; ***************************************************
+;; (d)
+;; (is-flush? hand) produces true if there's a flush, false otherwise
+;; Examples
+(check-expect
+ (is-flush? (cons (make-card 2 'Diamond)
+                  (cons (make-card 3 'Heart)
+                        (cons (make-card 4 'Club)
+                              (cons (make-card 5 'Spade)
+                                    (cons (make-card 6 'Club) empty))))))
+ false)
+(check-expect
+ (is-flush? (cons (make-card 2 'Club)
+                  (cons (make-card 5 'Club)
+                        (cons (make-card 10 'Club)
+                              (cons (make-card 'Jack 'Club)
+                                    (cons (make-card 'Ace 'Club) empty))))))
+ true)
+(check-expect
+ (is-flush? (cons (make-card 2 'Club)
+                  (cons (make-card 5 'Heart)
+                        (cons (make-card 10 'Heart)
+                              (cons (make-card 'Jack 'Heart)
+                                    (cons (make-card 'Ace 'Heart) empty))))))
+ false)
+;; is-flush?: (listof Card) -> Bool
+;; Requires: The length of hand to be 5
+;;           hand must be sorted in already
+(define (is-flush? hand)
+  (cond
+    [(or (empty? hand) (empty? (rest hand))) true]
+    [(= (custom-card-suit (card->custom-card (first hand)))
+        (custom-card-suit (card->custom-card (first (rest hand)))))
+     (is-flush? (rest hand))]
+    [else false]))
+
+;; ***************************************************
+;; (e)
+;; (is-full-house? hand) produces true if it is a full house. False otherwise
+;; Examples
+(check-expect
+ (is-full-house? (cons (make-card 2 'Diamond)
+                       (cons (make-card 3 'Heart)
+                             (cons (make-card 4 'Club)
+                                   (cons (make-card 5 'Spade)
+                                         (cons (make-card 6 'Club) empty))))))
+ false)
+(check-expect
+ (is-full-house? (cons (make-card 3 'Club)
+                       (cons (make-card 3 'Diamond)
+                             (cons (make-card 'Jack 'Club)
+                                   (cons (make-card 'Jack 'Heart)
+                                         (cons (make-card 'Jack 'Spade) empty))))))
+true)
+(check-expect
+ (is-full-house? (cons (make-card 3 'Club)
+                       (cons (make-card 3 'Diamond)
+                             (cons (make-card 3 'Heart)
+                                   (cons (make-card 'Ace 'Heart)
+                                         (cons (make-card 'Ace 'Spade) empty))))))
+true)
+
+;; is-full-house?: (listof Card) -> Bool
+;; Requires: The length of hand to be 5
+;;           hand must be sorted in already
+(define (is-full-house? hand)
+  ;; A full-house will always have a value of 13
+  ;; Alternative way would be hard coding 2 situations
+  (= (full-house-math hand) 13))
+
+;; (full-house-math hand) gives the sum of the hand in the following way:
+;; +1 if the next card is the same as current
+;; +10 if the next card is different than the current
+;; 0 if you are at last card
+
+;; Examples:
+(check-expect
+ (full-house-math (cons (make-card 3 'Club)
+                       (cons (make-card 3 'Diamond)
+                             (cons (make-card 'Jack 'Club)
+                                   (cons (make-card 'Jack 'Heart)
+                                         (cons (make-card 'Jack 'Spade) empty))))))
+13)
+(check-expect
+ (full-house-math (cons (make-card 2 'Diamond)
+                       (cons (make-card 3 'Heart)
+                             (cons (make-card 4 'Club)
+                                   (cons (make-card 5 'Spade)
+                                         (cons (make-card 6 'Club) empty))))))
+ 40)
+;; full-house-math: (listof Card) -> Nat
+
+(define (full-house-math hand)
+  (cond
+    [(or (empty? hand) (empty? (rest hand))) 0]
+    [(= (custom-card-rank (card->custom-card (first hand)))
+        (custom-card-rank (card->custom-card (first (rest hand)))))
+     (+ 1 (full-house-math (rest hand)))]
+    [else (+ 10 (full-house-math (rest hand)))]))
+
+
+;; ***************************************************
+;; (f)
+;; (replace-card card1 card2 cards) replaces card1 with card2 in the list
+;; Examples:
+(check-expect
+ (replace-card (make-card 2 'Diamond) (make-card 'Ace 'Club)
+               (cons (make-card 2 'Club)
+                     (cons (make-card 2 'Diamond)
+                           (cons (make-card 'Jack 'Club)
+                                 (cons (make-card 9 'Spade)
+                                       (cons (make-card 6 'Club) empty))))))
+ (cons (make-card 2 'Club)
+       (cons (make-card 'Ace 'Club)
+             (cons (make-card 'Jack 'Club)
+                   (cons (make-card 9 'Spade)
+                         (cons (make-card 6 'Club) empty))))))
+(check-expect
+ (replace-card (make-card 3 'Club) (make-card 'Ace 'Club)
+               (cons (make-card 3 'Club)
+                     (cons (make-card 'Ace 'Club)
+                           (cons (make-card 'Jack 'Club)
+                                 (cons (make-card 3 'Club)
+                                       (cons (make-card 6 'Club) empty))))))
+ (cons (make-card 'Ace 'Club)
+       (cons (make-card 'Ace 'Club)
+             (cons (make-card 'Jack 'Club)
+                   (cons (make-card 'Ace 'Club)
+                         (cons (make-card 6 'Club) empty))))))
+
+;; replace-card: Card Card (listof Card) -> (listof Card)
+(define (replace-card card1 card2 cards)
+  (cond [(empty? cards) empty]
+        [(and (= (custom-card-rank (card->custom-card (first cards)))
+                 (custom-card-rank (card->custom-card card1)))
+              (= (custom-card-suit (card->custom-card (first cards)))
+                 (custom-card-suit (card->custom-card card1))))
+         (cons card2 (replace-card card1 card2 (rest cards)))]
+        [else (cons (first cards) (replace-card card1 card2 (rest cards)))]))
+
+
+
+

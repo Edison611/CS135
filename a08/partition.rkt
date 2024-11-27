@@ -1,0 +1,37 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname partition) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Edison Ying (21119725)
+;; CS 135 Fall 2024
+;; Assignment 08, Q3 Partition
+;; ***************************************************
+;;
+
+;; (partition pred loa) produces a two element list with the first of the list following the predicate
+;; and the second of the list with all other elements
+;; Examples:
+(check-expect (partition number? (list 1 "a" "b" 2 3 "c" 4 "d" 5))
+              (list (list 1 2 3 4 5) (list "a" "b" "c" "d")))
+
+;; partition: (Any -> Bool) (listof Any) -> (list (listof Any) (listof Any))
+(define (partition pred loa)
+  (local [; res: (listof Any) (listof Any) (listof Any) -> (listof Any)
+          (define (res lst l1 l2)
+            (cond [(empty? lst) (list (reverse l1) (reverse l2))]
+                  [(pred (first lst))
+                   (res (rest lst) (cons (first lst) l1) l2)]
+                  [else (res (rest lst) l1 (cons (first lst) l2))]))]
+    (res loa empty empty)))
+
+;(define (partition pred loa)
+;  (local [; part: (listof Any) Bool -> (listof Any)
+;          (define (part lst bool)
+;          (cond [(empty? lst) empty]
+;                [bool (cond [(pred (first lst))
+;                             (cons (first lst) (part (rest lst) bool))]
+;                             [else (part (rest lst) bool)])]
+;                [(not (pred (first lst)))
+;                 (cons (first lst) (part (rest lst) bool))]
+;                [else (part (rest lst) bool)]))]
+;    (list (part loa true) (part loa false))))

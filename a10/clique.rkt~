@@ -1,0 +1,16 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname Untitled) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Edison Ying (21119725)
+;; CS 135 Fall 2024
+;; Assignment 10, Q3 Clique
+;; ***************************************************
+;;
+
+;; (is-clique? lon g) produces true if list of nodes form a clique in the graph
+;; Examples:
+
+(check-expect (is-clique? '(A B C) '((A (B C D)) (B (A C))
+                                                 (C (A B)) (D ())))
+              true)

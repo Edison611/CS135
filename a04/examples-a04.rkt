@@ -1,0 +1,212 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname examples-a04) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;;
+;; ***************************************************
+;; Edison Ying (21119725)
+;; CS 135 Fall 2024
+;; Assignment 04, Examples
+;; ***************************************************
+;;
+
+;; Q2
+;; (a)
+(check-expect
+ (list-has-exactly-4-symbols (cons 'Prof (cons "Roh" (cons "is"
+                                                           (cons 'number (cons 1 empty)))))) false)
+(check-expect
+ (list-has-exactly-4-symbols (cons 'I (cons 'really (cons 'love
+                                                          (cons 'CS135 (cons "!" empty)))))) true)
+(check-expect
+ (list-has-exactly-4-symbols (cons 'a
+                     (cons 'b
+                           (cons 'b
+                                      (cons "!"
+                                            (cons "GG" empty)))))) false)
+(check-expect
+ (list-has-exactly-4-symbols (cons 'a
+                     (cons 'b
+                           (cons true
+                                      (cons 'false
+                                            (cons 'true empty)))))) true)
+;; (b)
+(check-expect
+ (add-only-numbers (cons "CS" (cons 135 (cons 'is
+                                              (cons "number" (cons 1 empty)))))) 136)
+(check-expect
+ (add-only-numbers (cons (cons 1 (cons 3 empty)) (cons "Hi"
+                                                       (cons 5 empty)))) 5)
+(check-expect
+ (add-only-numbers (cons true (cons 11 (cons 2
+                                              (cons 4 (cons 0.5 empty)))))) 17.5)
+(check-expect
+ (add-only-numbers empty) 0)
+(check-expect
+ (add-only-numbers (cons "CS" (cons false (cons 'is
+                                              (cons "number" (cons true empty)))))) 0)
+;; (c)
+(check-expect
+ (before-after "student" "hello" "welcome"
+               (cons "smart" (cons "student" (cons "here" empty))))
+ (cons "smart" (cons "hello" (cons "student"
+                                   (cons "welcome" (cons "here" empty))))))
+(check-expect
+ (before-after "student" "hello" "welcome"
+               (cons "smart" (cons "ah" (cons "here" empty))))
+ (cons "smart" (cons "ah" (cons "here" empty))))
+(check-expect
+ (before-after "student" "hello" "welcome"
+               (cons "smart" (cons "a" (cons "student" empty))))
+ (cons "smart" (cons "a" (cons "hello"
+                                   (cons "student" (cons "welcome" empty))))))
+;; (d)
+(check-expect (exists? 135 (cons 'CS (cons 135 (cons "rules"
+                                                     empty)))) true)
+(check-expect (exists? 135 (cons 'CS (cons "135" (cons "then" (cons
+                                                               136 empty))))) false)
+(check-expect (exists? "pi" (cons 'CS (cons 'AJADJA (cons "pi" (cons
+                                                               pi empty))))) true)
+(check-expect (exists? "" (cons 'a (cons 'AJADJA (cons "pi" (cons
+                                                               pi empty))))) false)
+;; (e)
+(check-expect (remove-duplicates
+               (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 empty)))))))
+              (cons 3 empty))
+(check-expect (remove-duplicates
+               (cons 3 (cons 4 (cons 3 (cons 5 (cons 3 (cons 3 empty)))))))
+              (cons 4 (cons 5 (cons 3 empty))))
+
+;; Q3
+;; (a)
+(check-expect
+ (sorted? (cons (make-card 2 'Diamond)
+                (cons (make-card 7 'Club) empty)))
+ true)
+(check-expect
+ (sorted? (cons (make-card 'Ace 'Spade)
+                (cons (make-card 'Ace 'Club) empty)))
+ false)
+(check-expect
+ (sorted? (cons (make-card 2 'Heart)
+                (cons (make-card 'Jack 'Club)
+                      (cons (make-card 'Jack 'Spade)
+                            (cons (make-card 'King 'Diamond) empty)))))
+ true)
+(check-expect
+ (sorted? (cons (make-card 2 'Heart) empty))
+ true)
+
+;; (b)
+(check-expect
+ (cheater? (cons (make-card 2 'Diamond)
+                 (cons (make-card 2 'Heart)
+                       (cons (make-card 7 'Club) empty))))
+ false)
+(check-expect
+ (cheater? (cons (make-card 'Ace 'Spade)
+                 (cons (make-card 'Ace 'Spade) empty)))
+ true)
+(check-expect
+ (cheater? (cons (make-card 'Jack 'Diamond)
+                 (cons (make-card 'Jack 'Heart)
+                       (cons (make-card 7 'Club) empty))))
+ false)
+(check-expect
+ (cheater? (cons (make-card 2 'Spade)
+                 (cons (make-card 3 'Spade) empty)))
+ false)
+
+;; (c)
+(check-expect
+ (is-straight? (cons (make-card 2 'Diamond)
+                     (cons (make-card 3 'Heart)
+                           (cons (make-card 4 'Club)
+                                 (cons (make-card 5 'Spade)
+                                       (cons (make-card 6 'Club) empty))))))
+ true)
+(check-expect
+ (is-straight? (cons (make-card 8 'Diamond)
+                     (cons (make-card 9 'Club)
+                           (cons (make-card 9 'Heart)
+                                 (cons (make-card 'Queen 'Spade)
+                                       (cons (make-card 'King 'Club) empty))))))
+ false)
+(check-expect
+ (is-straight? (cons (make-card 10 'Diamond)
+                     (cons (make-card 'Jack 'Club)
+                           (cons (make-card 'Queen 'Heart)
+                                 (cons (make-card 'King 'Spade)
+                                       (cons (make-card 'Ace 'Club) empty))))))
+ true)
+
+;; (d)
+(check-expect
+ (is-flush? (cons (make-card 2 'Diamond)
+                  (cons (make-card 3 'Heart)
+                        (cons (make-card 4 'Club)
+                              (cons (make-card 5 'Spade)
+                                    (cons (make-card 6 'Club) empty))))))
+ false)
+(check-expect
+ (is-flush? (cons (make-card 2 'Club)
+                  (cons (make-card 5 'Club)
+                        (cons (make-card 10 'Club)
+                              (cons (make-card 'Jack 'Club)
+                                    (cons (make-card 'Ace 'Club) empty))))))
+ true)
+(check-expect
+ (is-flush? (cons (make-card 2 'Club)
+                  (cons (make-card 5 'Heart)
+                        (cons (make-card 10 'Heart)
+                              (cons (make-card 'Jack 'Heart)
+                                    (cons (make-card 'Ace 'Heart) empty))))))
+ false)
+
+;; (e)
+(check-expect
+ (is-full-house? (cons (make-card 2 'Diamond)
+                       (cons (make-card 3 'Heart)
+                             (cons (make-card 4 'Club)
+                                   (cons (make-card 5 'Spade)
+                                         (cons (make-card 6 'Club) empty))))))
+ false)
+(check-expect
+ (is-full-house? (cons (make-card 3 'Club)
+                       (cons (make-card 3 'Diamond)
+                             (cons (make-card 'Jack 'Club)
+                                   (cons (make-card 'Jack 'Heart)
+                                         (cons (make-card 'Jack 'Spade) empty))))))
+true)
+(check-expect
+ (is-full-house? (cons (make-card 3 'Club)
+                       (cons (make-card 3 'Diamond)
+                             (cons (make-card 3 'Heart)
+                                   (cons (make-card 'Ace 'Heart)
+                                         (cons (make-card 'Ace 'Spade) empty))))))
+true)
+
+;; (f)
+(check-expect
+ (replace-card (make-card 2 'Diamond) (make-card 'Ace 'Club)
+               (cons (make-card 2 'Club)
+                     (cons (make-card 2 'Diamond)
+                           (cons (make-card 'Jack 'Club)
+                                 (cons (make-card 9 'Spade)
+                                       (cons (make-card 6 'Club) empty))))))
+ (cons (make-card 2 'Club)
+       (cons (make-card 'Ace 'Club)
+             (cons (make-card 'Jack 'Club)
+                   (cons (make-card 9 'Spade)
+                         (cons (make-card 6 'Club) empty))))))
+(check-expect
+ (replace-card (make-card 3 'Club) (make-card 'Ace 'Club)
+               (cons (make-card 3 'Club)
+                     (cons (make-card 'Ace 'Club)
+                           (cons (make-card 'Jack 'Club)
+                                 (cons (make-card 3 'Club)
+                                       (cons (make-card 6 'Club) empty))))))
+ (cons (make-card 'Ace 'Club)
+       (cons (make-card 'Ace 'Club)
+             (cons (make-card 'Jack 'Club)
+                   (cons (make-card 'Ace 'Club)
+                         (cons (make-card 6 'Club) empty))))))

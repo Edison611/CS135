@@ -1,0 +1,17 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname spelling) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; ***************************************************
+;; Edison Ying (21119725)
+;; CS 135 Fall 2024
+;; Assignment 07, Q3 SpellBound
+;; ***************************************************
+;;
+
+;; (a)
+
+(define-struct node (letter term next))
+;; A Node is a (make-node Char Bool Next)
+
+;; A Next is a (listof Node)
+

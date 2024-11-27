@@ -1,0 +1,92 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname robot-nav) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor mixed-fraction #f #t none #f () #t)))
+;;
+;; ***************************************************
+;; Edison Ying (21119725)
+;; CS 135 Fall 2024
+;; Assignment 03, Q3 Robots
+;; ***************************************************
+;;
+
+;; (a)
+(define-struct state (x y dir))
+;; A State is a (make-state Int Int Sym)
+;; Requires: 0 <= x <= 10
+;;           0 <= y <= 10
+;;           dir = 'North, 'South, 'East, or 'West
+
+;; (b)
+;; (robot-ctl cur-state command) produces the resulting state after taking an action
+
+;; Examples
+(check-expect (robot-ctl (make-state 2 2 'North) 'forward) (make-state 2 3 'North))
+(check-expect (robot-ctl (make-state 4 7 'East) 'forward) (make-state 5 7 'East))
+(check-expect (robot-ctl (make-state 2 2 'North) 'turn-left) (make-state 2 2 'West))
+(check-expect (robot-ctl (make-state 4 7 'East) 'turn-right) (make-state 4 7 'South))
+
+;; robot-ctl: State Sym -> State
+;; Requires: cur-state to be a valid state: 0 <= x,y <= 10, dir = 'North, 'South, 'East, or 'West
+;;           command = 'forward, 'turn-left, or 'turn-right
+(define (robot-ctl cur-state command)
+  (cond
+    [(symbol=? command 'forward)
+     (cond
+       [(and (symbol=? (state-dir cur-state) 'North)
+             (< (state-y cur-state) 10))
+        (change-state cur-state 0 1 'North)]
+       [(and (symbol=? (state-dir cur-state) 'South)
+             (> (state-y cur-state) 0))
+        (change-state cur-state 0 -1 'South)]
+       [(and (symbol=? (state-dir cur-state) 'East)
+             (< (state-x cur-state) 10))
+        (change-state cur-state 1 0 'East)]
+       [(and (symbol=? (state-dir cur-state) 'West)
+             (> (state-x cur-state) 0))
+        (change-state cur-state -1 0 'West)]
+       [else (make-state (state-x cur-state)
+                         (state-y cur-state)
+                         (state-dir cur-state))]
+       )]
+    [(symbol=? command 'turn-left)
+     (cond
+       [(symbol=? (state-dir cur-state) 'North)
+        (change-state cur-state 0 0 'West)]
+       [(symbol=? (state-dir cur-state) 'East)
+        (change-state cur-state 0 0 'North)]
+       [(symbol=? (state-dir cur-state) 'South)
+        (change-state cur-state 0 0 'East)]
+       [(symbol=? (state-dir cur-state) 'West)
+        (change-state cur-state 0 0 'South)]
+       )]
+    [(symbol=? command 'turn-right)
+     (cond
+       [(symbol=? (state-dir cur-state) 'North)
+        (change-state cur-state 0 0 'East)]
+       [(symbol=? (state-dir cur-state) 'East)
+        (change-state cur-state 0 0 'South)]
+       [(symbol=? (state-dir cur-state) 'South)
+        (change-state cur-state 0 0 'West)]
+       [(symbol=? (state-dir cur-state) 'West)
+        (change-state cur-state 0 0 'North)]
+       )]
+    ))
+
+;; (change-state cur-state dx dy new-dir) produces a new state changing x, y, and dir
+
+;; Examples
+(check-expect (change-state (make-state 2 2 'North) 1 -1 'South)
+              (make-state 3 1 'South))
+
+;; change-state: State Int Int Sym -> State
+;; Requires: cur-state to be a valid state: 0 <= x,y <= 10, dir = 'North, 'South, 'East, or 'West
+(define (change-state cur-state dx dy new-dir)
+  (make-state (+ (state-x cur-state) dx)
+              (+ (state-y cur-state) dy)
+              new-dir))
+
+;; Test Cases
+(check-expect (robot-ctl (make-state 0 10 'North) 'forward) (make-state 0 10 'North))
+
+; (require "robot-gui.rkt")
+
