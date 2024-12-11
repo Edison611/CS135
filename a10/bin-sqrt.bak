@@ -16,9 +16,10 @@
 (check-within (bin-sqrt 10000001000000100000010000001000000 0.001)
               (sqrt 10000001000000100000010000001000000) 0.001)
 ;; bin-sqrt: Nat Num -> Num
-;; Requires:
-;; * tolerance > 0
-;; * n >= 1
+;; requires:
+;; - tolerance > 0
+;; - n >= 1
+
 (define (bin-sqrt n tol)
   (local [(define (bin-sqrt/rec low high)
           (local [(define k (/ (+ low high) 2))]

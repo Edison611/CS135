@@ -74,7 +74,7 @@
 ;              '(((3 1) (1 2) (0 0))))
 
 ;; neighbours-naive: Candidate Nat -> (listof Candidate)
-;; Requires: no two positions in candidate are attacking each other
+;; requires: no two positions in candidate are attacking each other
 (define (neighbours-naive cand n)
   (local [(define grid (build-list n (lambda (j) (build-list n (lambda (i) (list j i))))))
           (define coords (foldr append empty grid))
@@ -221,41 +221,6 @@
          empty
          (build-list n (lambda (x) (list 0 x))))))
 
-
-;; ALTERNATE SOLUTION: (IT DOES NOT WORK FOR N=3)
-;(define (n-queens n nbr-fun)
-;  (local [(define paths (find-path/list (build-list n (lambda (x) (list (list 0 x)))) n nbr-fun))]
-;    (foldr (lambda (i rror)
-;                     (cons (slice (* n i) (- (* n (+ i 1)) 1) paths) rror))
-;                 empty
-;                 (build-list (quotient (length paths) n) (lambda (x) x)))))
-; (find-path orig dest g) finds path from orig to dest in g if it exists
-; find-path: Node Node Graph → (anyof (ne-listof Node) false)
-(define (find-path cand n nbr-fun)
-  (cond [(= (length cand) n) cand]
-        [else (local [(define nbrs (foldr
-                                    (lambda (x rror)
-                                      (cond [(= (+ 1 (first (first cand)))
-                                                (first (first x)))
-                                             (cons x rror)]
-                                            [else rror])) empty (nbr-fun cand n)))
-                      (define ?path (find-path/list nbrs n nbr-fun))]
-                (cond [(false? ?path) false]
-                      [else ?path]))]))
-
-; an element of nbrs to dest in g, if one exists
-; find-path/list: (listof Node) Node Graph → (anyof (ne-listof Node) false)
-(define (find-path/list nbrs n nbr-fun)
-  (cond [(empty? nbrs) false]
-        [else (local
-                [(define ?path (find-path (first nbrs) n nbr-fun))
-                 (define rror (find-path/list (rest nbrs) n nbr-fun))]
-                (cond [(false? ?path) rror]
-                      [(false? rror) ?path]
-                      [else (append ?path rror)]))]))
-
-
-
 ;; From Prev Assignment
 (define (slice a b lst)
   (foldr
@@ -266,6 +231,29 @@
    lst
    (build-list (length lst) (lambda (x) x))))
 
+;; (find-path orig dest g) finds path from orig to dest in g if it exists
+;; find-path: Node Node Graph → (anyof (ne-listof Node) false)
+;(define (find-path cand n)
+;  (cond [(= (length cand) n) cand]
+;        [else (local [(define nbrs (neighbours-row (list (first cand)) n))
+;                      (define paths (map (lambda (x) (cons (first x) cand)) nbrs))]
+;                (foldr (lambda (x rror)
+;                         (cond [(valid-cand? x n)
+;                                (cond [(empty? (find-path x n)) rror]
+;                                      [else (append (find-path x n) rror)])]
+;                               [else rror]))
+;                       empty
+;                       paths))]))
+
+;; (find-path/list nbrs dest g) produces path from
+;; an element of nbrs to dest in g, if one exists
+;; find-path/list: (listof Node) Node Graph → (anyof (ne-listof Node) false)
+;(define (find-path/list nbrs dest g)
+;  (cond [(empty? nbrs) false]
+;        [else (local [(define ?path (find-path (first nbrs) dest g))]
+;                (cond [(false? ?path)
+;                       (find-path/list (rest nbrs) dest g)]
+;                      [else ?path]))]))
 
     
     

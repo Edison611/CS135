@@ -1,0 +1,45 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname f17) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+
+
+
+;; Q7
+
+(define (neighbours v g)
+  (cond
+    [(empty? g) empty]
+    [(symbol=? v (first (first g))) (second (first g))]
+    [else (neighbours v (rest g))]))
+
+(define g
+  '((A (C D E))
+    (B (E J))
+    (C ())
+    (D (F J))
+    (E (K))
+    (F (K H))
+    (H ())
+    (J (H))
+    (K ()))
+  )
+
+
+;; (find-path orig dest g) finds path from orig to dest in g if it exists
+;; find-path: Node Node Graph → (anyof (ne-listof Node) false)
+(define (find-path orig dest g)
+  (cond [(symbol=? orig dest) (list (list dest))]
+        [else (local [(define nbrs (neighbours orig g))
+                      (define ?path (find-path/list nbrs dest g))]
+                (cond [(empty? ?path) ?path]
+                      [else (foldr append empty (map (lambda (x) (list (cons orig x))) ?path))]))]))
+
+;; (find-path/list nbrs dest g) produces path from
+;; an element of nbrs to dest in g, if one exists
+;; find-path/list: (listof Node) Node Graph → (anyof (ne-listof Node) false)
+(define (find-path/list nbrs dest g)
+  (cond [(empty? nbrs) empty]
+        [else (local [(define ?path (find-path (first nbrs) dest g))]
+                (cond [(empty? ?path)
+                       (find-path/list (rest nbrs) dest g)]
+                      [else (append ?path (find-path/list (rest nbrs) dest g))]))]))
